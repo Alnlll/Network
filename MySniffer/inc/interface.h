@@ -1,7 +1,7 @@
-#ifndef _NET_CONTROL_H
-#define _NET_CONTROL_H
+#ifndef _INTERFACE_H_
+#define _INTERFACE_H_
 
 int do_promisc(char *ifname, int sock_fd);
 int cancel_promisc(char *ifname, int sock_fd);
 
-#endif //_NET_CONTROL_H
+#endif //_INTERFACE_H_

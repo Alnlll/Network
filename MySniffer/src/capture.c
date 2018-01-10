@@ -4,13 +4,11 @@
 //#include <sys/time.h>
 //#include <sys/types.h>
 //#include <unistd.h>
-
 #include <sys/types.h> //recvfrom()
 #include <sys/socket.h> //recvfrom()
+#include "capture.h"
 
-#include "net_comm.h"
-
-int select_comm(int sock_fd, char *buf, int size)
+int do_cap(int sock_fd, char *buf, int size)
 {
 	int res = 0;
 	fd_set fd_read;

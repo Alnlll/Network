@@ -2,7 +2,7 @@
 #include <string.h> //strcpy(),
 #include <sys/ioctl.h> //ioctl(),
 #include <net/if.h> //IFF_RUNNING, IFF_PROMISC
-#include "net_control.h"
+#include "interface.h"
 
 int do_promisc(char *ifname, int sock_fd)
 {

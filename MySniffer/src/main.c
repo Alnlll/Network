@@ -2,9 +2,10 @@
 #include <unistd.h> //close()
 #include <arpa/inet.h> //htons(),
 #include </usr/include/linux/if_ether.h> //ETH_P_ALL,
-#include "net_control.h"
-#include "net_comm.h"
+#include "interface.h"
+#include "capture.h"
 #include "common.h"
+#include "parser.h"
 
 char *usage = "Usage:\n\tmain ifname\n";
 
@@ -16,6 +17,7 @@ int main(int argc, char *argv[])
 	int ret = 0;
 	char data_buf[REV_DATA_SIZE] = {0};
 	int rev_len = 0;
+	processer proc_func = NULL;
 
 	if (2 > argc)
 		printf("%s", usage);
@@ -36,8 +38,15 @@ int main(int argc, char *argv[])
 
 	while (1)
 	{
-		if (0 < (rev_len = select_comm(r_sock_fd, data_buf, sizeof(data_buf))))
+		if (0 < (rev_len = do_cap(r_sock_fd, data_buf, sizeof(data_buf))))
 		{
+			if (NULL == (proc_func = dispatch_ether_packet(data_buf, rev_len)))
+			{
+				printf("Parse ether packet fail\n");
+				break;
+			}
+
+			proc_func(data_buf, rev_len);
 			hex_dump(data_buf, rev_len);
 		}
 		else
