@@ -97,20 +97,40 @@ int t_get_netif_addr(char *ifname, int r_sock_fd)
     
 }
 
+void t_set_color(void)
+{
+    SET_COLOR(RED);
+    printf("RED\n");
+    printf("RED\n");
+    SET_COLOR(L_RED);
+    printf("LIGHT_RED\n");
+    SET_COLOR(GREEN);
+    printf("GREEN\n");
+    SET_COLOR(L_GREEN);
+    printf("LIGHT_GREEN\n");
+    SET_COLOR(DEFAULT_COLOR);
+    printf("Default\n");
+}
+
 int main(int argc, char *argv[])
 {
     int err = 0;
     int sock_fd = -1;
 
+#if 0
     sock_fd = create_socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
     if (0 > sock_fd)
     {
         err = -1;
         goto end;
     }
+#endif //0
 
-    send_arp_packet(argv[1], sock_fd);
+    t_set_color();
+    
 #if 0
+    send_arp_packet(argv[1], sock_fd);
+
     if (-1 == (err = t_get_netif_addr(argv[1], sock_fd)))
     {
         err = 1;

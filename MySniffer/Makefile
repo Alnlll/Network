@@ -4,12 +4,13 @@ CC = gcc
 SRC_PATH = ${CUR_PATH}src/
 INC_PATH = ${CUR_PATH}inc/
 OUTPUT_PATH = ${CUR_PATH}output/
-
-CFLAGS =
+OBJS = ${OUTPUT_PATH}main.o ${OUTPUT_PATH}interface.o ${OUTPUT_PATH}capture.o\
+${OUTPUT_PATH}common.o ${OUTPUT_PATH}comm.o ${OUTPUT_PATH}parser.o
+CFLAGS = 
 IFLAGS = -I${CUR_PATH}inc/
 
-main: ${OUTPUT_PATH}main.o ${OUTPUT_PATH}interface.o ${OUTPUT_PATH}capture.o ${OUTPUT_PATH}common.o ${OUTPUT_PATH}comm.o ${OUTPUT_PATH}parser.o
-	${CC} ${OUTPUT_PATH}main.o ${OUTPUT_PATH}interface.o ${OUTPUT_PATH}capture.o ${OUTPUT_PATH}common.o ${OUTPUT_PATH}comm.o ${OUTPUT_PATH}parser.o -o main
+main: ${OBJS}
+	${CC} ${OBJS} -o main
 	mv main ${OUTPUT_PATH}
 
 test: ${OUTPUT_PATH}test.o ${OUTPUT_PATH}common.o ${OUTPUT_PATH}parser.o ${OUTPUT_PATH}comm.o ${OUTPUT_PATH}interface.o
