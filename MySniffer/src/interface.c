@@ -2,11 +2,11 @@
 #include <string.h> //strcpy(),
 #include <sys/ioctl.h> //ioctl(),
 #include <net/if.h> //IFF_RUNNING, IFF_PROMISC
+#include <netpacket/packet.h> //struct sockadd_ll,
 #include "interface.h"
 
 int do_promisc(char *ifname, int sock_fd)
 {
-	int s = 0;
 	struct ifreq ifr;
 
 	strcpy(ifr.ifr_name, ifname);
@@ -36,7 +36,6 @@ int do_promisc(char *ifname, int sock_fd)
 
 int cancel_promisc(char *ifname, int sock_fd)
 {
-	int s = 0;
 	struct ifreq ifr;
 
 	strcpy(ifr.ifr_name, ifname);
@@ -63,3 +62,24 @@ int cancel_promisc(char *ifname, int sock_fd)
 
 	return 0;
 }
+
+int get_netif_addr(char *ifname, int r_sock_fd, struct sockaddr_ll *sll)
+{
+    int err = 0;
+    struct ifreq ifr;
+    
+    if ((NULL == sll) || (NULL == ifname))
+        err = -1;
+
+    strcpy(ifr.ifr_name, ifname);
+
+    if (-1 == (err = ioctl(r_sock_fd, SIOCGIFINDEX, &ifr)))
+    {
+        perror("get_net_interface_addr() ");
+        return err;
+    }
+    sll->sll_ifindex = ifr.ifr_ifindex;
+
+    return err;
+}
+

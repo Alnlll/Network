@@ -6,6 +6,39 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <string.h>
+#include <netinet/ip.h> //struct ip & struct icmp
+#include <linux/types.h> //all types
+#include "ping.h"
+
+char send_buf[SEND_BUF_SIZE] = {0};
+
+uint16_t cal_chsum(struct icmp *p_icmp)
+{
+	uint16_t *data = (uint16_t *)p_icmp;
+	uint16_t tmp = 0;
+	uint32_t csum = 0;
+	int len = ICMP_LEN;
+
+
+	while (1 < len)
+	{
+		sum += *data++;
+		len -= 2;
+	}
+
+	if (1 == len)
+	{
+		tmp = *data;
+		tmp &= 0xff00;
+		csum += tmp;
+	}
+
+	csum = (csum >> 16) + (csum & 0x0000ffff);
+	csum += (csum >> 16);
+	//csum = ~csum;
+
+	return ~csum;
+}
 
 void call(int argc, char *argv[])
 {

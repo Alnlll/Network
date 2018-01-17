@@ -36,14 +36,12 @@ int do_cap(int sock_fd, char *buf, int size)
 		}
 		else if (FD_ISSET(sock_fd, &fd_read))
 		{
-			data_len = recvfrom(sock_fd, buf, size, 0,\
-								&saddr, &addr_size);
+            data_len = recv_data_from(sock_fd, buf, size, 0,\
+								      &saddr, &addr_size);
 			if (0 >= data_len)
-			{
-				perror("recvfrom()");
 				return -1;
-			}
-			return data_len;
+            else
+			    return data_len;
 		}
 		else
 		{

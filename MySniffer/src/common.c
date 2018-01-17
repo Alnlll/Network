@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <stdlib.h> //malloc(), free(),
+#include <string.h> //memset(),
 #include "common.h"
 
 void hex_dump(char *data, int len)
@@ -13,3 +15,25 @@ void hex_dump(char *data, int len)
 
 	printf("\n");
 }
+
+void *zelloc(size_t size)
+{
+    void *p = NULL;
+
+    if (NULL == (p = malloc(size)))
+        return NULL;
+
+    memset(p, 0, size);
+
+    return p;
+}
+
+void free_mem(void *p)
+{
+    if (NULL != p)
+    {
+        free(p);
+        p = NULL;
+    }
+}
+
