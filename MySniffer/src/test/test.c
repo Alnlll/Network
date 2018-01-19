@@ -2,10 +2,13 @@
 #include <linux/if_ether.h> //ETH_P_ALL,
 #include <netinet/in.h> //struct sockadd_in, 
 #include <netpacket/packet.h> //struct sockadd_ll,
+#include <time.h> //time_t
+#include <string.h> //memset(),
 #include "comm.h"
 #include "common.h"
 #include "parser.h"
 #include "interface.h"
+#include "log.h"
 
 int send_arp_packet(char *ifname, int sock_fd)
 {
@@ -112,6 +115,51 @@ void t_set_color(void)
     printf("Default\n");
 }
 
+void t_get_sys_time(void)
+{
+    char *str_t = NULL;
+    time_t t;
+}
+
+void t_log(void)
+{
+    FILE *f = NULL;
+    char f_name[64] = {0};
+    time_t t;
+    struct tm *p_tm = NULL;
+    char s_time[64] = {0};
+    log t_log;
+
+    if (!dir_exist(LOG_DIR))
+    {
+        if (0 != exec_command_1(CMD_MK_LOG_DIR))
+            return;
+    }
+
+    if (0 == get_str_time(s_time, sizeof(s_time), "%Y-%m-%d_%X", LOCAL_TIME))
+    {
+        printf("time to str fail.\n");
+        return;
+    }
+    sprintf(f_name, "%s/%s.log", LOG_DIR, s_time);
+    
+    if (NULL == (f = open_file(f_name, "a")))
+        return;
+    printf("%s\n", f_name);
+
+    t_log.f = f;
+    t_log.s = stdout;
+    t_log.limit_lv = LOG_LEVEL_DEBUG;
+
+    log_process(&t_log, LOG_LEVEL_DEBUG,  "%s\n", "DEBUG.");
+    log_process(&t_log, LOG_LEVEL_INFO,  "%s\n", "INFO.");
+    log_process(&t_log, LOG_LEVEL_WARN,  "%s\n", "WARN.");
+    log_process(&t_log, LOG_LEVEL_ERROR,  "%s\n", "ERROR.");
+    log_process(&t_log, LOG_LEVEL_FATAL,  "%s\n", "FATAL.");
+
+    close_file(f);
+}
+
 int main(int argc, char *argv[])
 {
     int err = 0;
@@ -126,7 +174,9 @@ int main(int argc, char *argv[])
     }
 #endif //0
 
-    t_set_color();
+    //t_set_color();
+    //t_get_sys_time();
+    t_log();
     
 #if 0
     send_arp_packet(argv[1], sock_fd);

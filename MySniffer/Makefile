@@ -13,8 +13,8 @@ main: ${OBJS}
 	${CC} ${OBJS} -o main
 	mv main ${OUTPUT_PATH}
 
-test: ${OUTPUT_PATH}test.o ${OUTPUT_PATH}common.o ${OUTPUT_PATH}parser.o ${OUTPUT_PATH}comm.o ${OUTPUT_PATH}interface.o
-	${CC} ${OUTPUT_PATH}test.o ${OUTPUT_PATH}common.o ${OUTPUT_PATH}parser.o ${OUTPUT_PATH}comm.o ${OUTPUT_PATH}interface.o -o test
+test: ${OUTPUT_PATH}test.o ${OUTPUT_PATH}common.o ${OUTPUT_PATH}parser.o ${OUTPUT_PATH}comm.o ${OUTPUT_PATH}interface.o ${OUTPUT_PATH}log.o
+	${CC} ${OUTPUT_PATH}test.o ${OUTPUT_PATH}common.o ${OUTPUT_PATH}parser.o ${OUTPUT_PATH}comm.o ${OUTPUT_PATH}interface.o  ${OUTPUT_PATH}log.o -o test
 	mv test ${OUTPUT_PATH}
 
 ${OUTPUT_PATH}main.o: ${SRC_PATH}main.c
@@ -39,6 +39,10 @@ ${OUTPUT_PATH}parser.o: ${SRC_PATH}parser.c ${INC_PATH}parser.h
 
 ${OUTPUT_PATH}comm.o: ${SRC_PATH}comm.c ${INC_PATH}comm.h
 	${CC} ${CFLAGS} ${IFLAGS} -c ${SRC_PATH}comm.c
+	mv *.o ${OUTPUT_PATH}
+
+${OUTPUT_PATH}log.o: ${SRC_PATH}log.c ${INC_PATH}log.h
+	${CC} ${CFLAGS} ${IFLAGS} -c ${SRC_PATH}log.c
 	mv *.o ${OUTPUT_PATH}
 
 ${OUTPUT_PATH}test.o: ${SRC_PATH}test/test.c
