@@ -63,23 +63,47 @@ int cancel_promisc(char *ifname, int sock_fd)
 	return 0;
 }
 
-int get_netif_addr(char *ifname, int r_sock_fd, struct sockaddr_ll *sll)
+/************************************************************************
+*Function   : get_netif_info()
+*Description: Get net interface information with ioctl.
+*Calls      :
+*Called By  :
+*Input      : 
+*             @ifname : interface name str.
+*             @sock_fd: socket file discreptor.
+*             @cmd    : Device-dependent request code
+*                       SIOCGIFINDEX  : get interface index.
+*                       SIOCGIFADDR   : get netif ip address.
+*                       SIOCGIFBRDADDR: get netif broadcast address.
+*                       SIOCGIFNETMASK: get netif net mask.
+*                       SIOCGIFHWADDR : get netif hardware address.
+*             @ifr    : interface name str.
+*Output     :
+*Return     :
+*Others     :
+************************************************************************/
+
+int get_spec_netif_info(char *ifname, int sock_fd, unsigned long cmd, struct ifreq *ifr)
 {
     int err = 0;
-    struct ifreq ifr;
+    char err_buf[ERR_BUF_SIZE] = {0};
     
-    if ((NULL == sll) || (NULL == ifname))
-        err = -1;
-
-    strcpy(ifr.ifr_name, ifname);
-
-    if (-1 == (err = ioctl(r_sock_fd, SIOCGIFINDEX, &ifr)))
+    if ((NULL == ifname) || (0 >= sock_fd) || (NULL == ifr))
     {
-        perror("get_net_interface_addr() ");
-        return err;
+        err = -1;
+        goto end;
     }
-    sll->sll_ifindex = ifr.ifr_ifindex;
 
+    strcpy(ifr->ifr_name, ifname);
+
+    if (-1 == (err = ioctl(sock_fd, cmd, ifr)))
+    {
+        sprintf(err_buf, "get_netif_info()-%lu", cmd);
+        perror(err_buf);
+        goto end;
+    }
+    
+end:
     return err;
 }
 

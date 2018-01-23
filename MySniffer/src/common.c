@@ -90,7 +90,6 @@ end:
 }
 
 
-
 FILE *open_file(char *path, char *mode)
 {
     FILE *f = NULL;

@@ -5,6 +5,7 @@
 #define CMD_MK_LOG_DIR "mkdir ./log"
 #define LOG_PREFIX_TIME_FORM "%Y-%m-%d_%X"
 #define LOG_PREFIX_FORM "%s %s: "
+#define LOG_LV(log_type) (LOG_LEVEL_##log_type)
 
 typedef enum
 {
@@ -25,12 +26,7 @@ typedef struct _log
 } log;
 
 int log_print(FILE *f, char *format, va_list args);
-int log_process(log *p_log, log_level ll, char *format, ...);
-#if 0
-int log_fatal(FILE *f, char *format, ...);
-int log_error(FILE *f, char *format, ...);
-int log_warn(FILE *f, char *format, ...);
-int log_info(FILE *f, char *format, ...);
-int log_debug(FILE *f, char *format, ...);
-#endif //0
+int log_write(log *p_log, log_level ll, char *format, ...);
+
 #endif //_LOG_H_
+

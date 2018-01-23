@@ -6,7 +6,7 @@ INC_PATH = ${CUR_PATH}inc/
 OUTPUT_PATH = ${CUR_PATH}output/
 OBJS = ${OUTPUT_PATH}main.o ${OUTPUT_PATH}interface.o ${OUTPUT_PATH}capture.o\
 ${OUTPUT_PATH}common.o ${OUTPUT_PATH}comm.o ${OUTPUT_PATH}parser.o
-CFLAGS = 
+CFLAGS = -Wall
 IFLAGS = -I${CUR_PATH}inc/
 
 main: ${OBJS}

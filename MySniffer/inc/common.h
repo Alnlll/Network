@@ -43,6 +43,72 @@
     }\
 }
 
+#if 0
+/* Bi-direction queue implemention. */
+#define QUEUE_ENTRY(type)\
+struct\
+{\
+    type *next;\
+    type *prev;\
+}
+
+#define QUEUE_HEAD(name, type)\
+struct name\
+{\
+    type *q_first;\
+    type *q_last;\
+}
+
+#define QUEUE_FIRST(head) ((head)->q_first)
+#define QUEUE_LAST(head) ((head->q_last))
+#define QUEUE_EMPTY(head) do {\
+    QUEUE_FIRST(head) = NULL;\
+    QUEUE_LAST(head) = NULL;\
+}
+#define QUEUE_ISEMPTY(head) (NULL == (head)->q_first)
+#define QUEUE_NEXT(ele) ((ele)->next)
+#define QUEUE_PREV(ele) ((ele)->prev)
+
+#define QUEUE_INIT(head) do {\
+    (head)->q_first = NULL;\
+    (head)->q_last = NULL;\
+} while(0)
+
+#define QUEUE_IN(head, ele, field) do {\
+    if (QUEUE_ISEMPTY(head))\
+    {\
+        QUEUE_FIRST(head) = ele;\
+        QUEUE_LAST(head) = ele;\
+        (ele)->next = NULL;\
+        (ele)->prev = NULL;\
+    }\
+    else\
+    {\
+        QUEUE_LAST(head)->field.next = ele;\
+        ele->field.prev = QUEUE_LAST(head);\
+        ele->field.next = NULL;\
+        head->last = ele;\
+    }\
+} while(0);
+
+#define QUEUE_OUT(head, field, para) do {\
+    if (QUEUE_ISEMPTY(head))\
+        para = NULL;\
+    else\
+    {\
+        para = QUEUE_FIRST(head);\
+        (head)->q_first = QUEUE_FIRST(head)->next;\
+        QUEUE_FIRST(head)->prev = NULL;\
+    }\
+} while(0);
+
+#define QUEUE_FOREACH(head, field, index) \
+for ((index) = QUEUE_FIRST(head);\
+    (NULL != (index)) && ((index) != QUEUE_LAST(head));\
+    (index) = (index)->(field).next)
+#endif //0
+
+/* Select type of time getted. */
 typedef enum
 {
     LOCAL_TIME = 0,

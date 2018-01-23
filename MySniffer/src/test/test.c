@@ -2,6 +2,8 @@
 #include <linux/if_ether.h> //ETH_P_ALL,
 #include <netinet/in.h> //struct sockadd_in, 
 #include <netpacket/packet.h> //struct sockadd_ll,
+#include <net/if.h> //struct ifreq, 
+#include <sys/ioctl.h> //SIOCGIFXXXX,
 #include <time.h> //time_t
 #include <string.h> //memset(),
 #include "comm.h"
@@ -16,11 +18,19 @@ int send_arp_packet(char *ifname, int sock_fd)
     ether_hdr *p_eth = NULL;
     arp_pack *p_arp = NULL;
     struct sockaddr_ll sll;
+    struct ifreq ifr;
     int i = 0;
     int len = 0;
 
-    if (-1 == get_netif_addr(ifname, sock_fd, &sll))
+    /* Get index of net interface */
+    if (0 != get_spec_netif_info(ifname, sock_fd, SIOCGIFINDEX, &ifr))
+    {
         return -1;
+    }
+    else
+    {
+        sll.sll_ifindex = ifr.ifr_ifindex;
+    }
 
     buf = (char *)zelloc(sizeof(ether_hdr)+sizeof(arp_pack));
     if (NULL == buf)
@@ -85,21 +95,6 @@ int send_arp_packet(char *ifname, int sock_fd)
     return 0;
 }
 
-int t_get_netif_addr(char *ifname, int r_sock_fd)
-{
-    struct sockaddr_ll sll;
-    
-    if ((NULL == ifname) || (0 > r_sock_fd))
-        return -1;
-
-    if (-1 == get_netif_addr(ifname, r_sock_fd, &sll))
-        return -1;
-
-    printf("ifindex: %x\n", sll.sll_ifindex);
-    return 0;
-    
-}
-
 void t_set_color(void)
 {
     SET_COLOR(RED);
@@ -115,18 +110,10 @@ void t_set_color(void)
     printf("Default\n");
 }
 
-void t_get_sys_time(void)
-{
-    char *str_t = NULL;
-    time_t t;
-}
-
 void t_log(void)
 {
     FILE *f = NULL;
     char f_name[64] = {0};
-    time_t t;
-    struct tm *p_tm = NULL;
     char s_time[64] = {0};
     log t_log;
 
@@ -151,13 +138,82 @@ void t_log(void)
     t_log.s = stdout;
     t_log.limit_lv = LOG_LEVEL_DEBUG;
 
-    log_process(&t_log, LOG_LEVEL_DEBUG,  "%s\n", "DEBUG.");
-    log_process(&t_log, LOG_LEVEL_INFO,  "%s\n", "INFO.");
-    log_process(&t_log, LOG_LEVEL_WARN,  "%s\n", "WARN.");
-    log_process(&t_log, LOG_LEVEL_ERROR,  "%s\n", "ERROR.");
-    log_process(&t_log, LOG_LEVEL_FATAL,  "%s\n", "FATAL.");
+    log_write(&t_log, LOG_LV(DEBUG),  "%s\n", "DEBUG.");
+    log_write(&t_log, LOG_LV(INFO),  "%s\n", "INFO.");
+    log_write(&t_log, LOG_LV(WARN),  "%s\n", "WARN.");
+    log_write(&t_log, LOG_LV(ERROR),  "%s\n", "ERROR.");
+    log_write(&t_log, LOG_LV(FATAL),  "%s\n", "FATAL.");
 
     close_file(f);
+}
+
+int t_get_netif_info(char *ifname)
+{
+    int err = 0;
+
+    int sock_fd = 0;
+    struct sockaddr_ll sll;
+    struct sockaddr_in *sin;
+    struct ifreq ifr;
+
+    if (-1 == (sock_fd = create_socket(AF_INET, SOCK_DGRAM, 0)))
+    {
+        err = -1;
+        goto end;
+    }
+    
+    /* get index */
+    if ( 0 != (err = get_spec_netif_info(ifname, sock_fd, SIOCGIFINDEX, &ifr)))
+    {
+        goto end;
+    }
+    sll.sll_ifindex = ifr.ifr_ifindex;
+
+    printf("%s index: %d\n", ifname, sll.sll_ifindex);
+
+    /* get ip addr */
+    if ( 0 != (err = get_spec_netif_info(ifname, sock_fd, SIOCGIFADDR, &ifr)))
+    {
+        goto end;
+    }
+    sin = (struct sockaddr_in *)&(ifr.ifr_addr);
+
+    printf("%s ip address: %s\n", ifname, inet_ntoa(sin->sin_addr));
+
+    /* get broadcast addr */
+    if ( 0 != (err = get_spec_netif_info(ifname, sock_fd, SIOCGIFBRDADDR, &ifr)))
+    {
+        goto end;
+    }
+    sin = (struct sockaddr_in *)&(ifr.ifr_addr);
+
+    printf("%s broadcast address: %s\n", ifname, inet_ntoa(sin->sin_addr));
+
+    /* get net mask */
+    if ( 0 != (err = get_spec_netif_info(ifname, sock_fd, SIOCGIFNETMASK, &ifr)))
+    {
+        goto end;
+    }
+    sin = (struct sockaddr_in *)&(ifr.ifr_addr);
+
+    printf("%s net mask: %s\n", ifname, inet_ntoa(sin->sin_addr));
+
+    /* get hwaddr */
+    if ( 0 != (err = get_spec_netif_info(ifname, sock_fd, SIOCGIFHWADDR, &ifr)))
+    {
+        goto end;
+    }
+
+    printf("%s mac addr: %02x:%02x:%02x:%02x:%02x:%02x\n", ifname, ifr.ifr_netmask.sa_data[0],
+                                                                  ifr.ifr_netmask.sa_data[1],
+                                                                  ifr.ifr_netmask.sa_data[2],
+                                                                  ifr.ifr_netmask.sa_data[3],
+                                                                  ifr.ifr_netmask.sa_data[4],
+                                                                  ifr.ifr_netmask.sa_data[5]);
+
+end:
+    destroy_socket(sock_fd);
+    return err;
 }
 
 int main(int argc, char *argv[])
@@ -176,7 +232,8 @@ int main(int argc, char *argv[])
 
     //t_set_color();
     //t_get_sys_time();
-    t_log();
+    //t_log();
+    t_get_netif_info(argv[1]);
     
 #if 0
     send_arp_packet(argv[1], sock_fd);
@@ -187,6 +244,7 @@ int main(int argc, char *argv[])
         goto end;
     }
 #endif //0
+    goto end;
 
 end:
     destroy_socket(sock_fd);
