@@ -44,7 +44,7 @@ int send_data_to(int sock_fd, char *buf, int len, int flags, struct sockaddr *de
     
 }
 
-int recv_data_from(int sock_fd, char * buf, int len, int flags, struct sockaddr *src_addr, int *addr_len)
+int recv_data_from(int sock_fd, char * buf, int len, int flags, struct sockaddr *src_addr, socklen_t *addr_len)
 {
     int recv_len = 0;
     

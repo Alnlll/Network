@@ -108,6 +108,95 @@ for ((index) = QUEUE_FIRST(head);\
     (index) = (index)->(field).next)
 #endif //0
 
+/* Bi-deriction list definations */
+
+#define BLIST_ENTRY(type)\
+struct\
+{\
+    type *prev;\
+    type *next;\
+}
+
+#define BLIST_HEAD(name, type)\
+struct name\
+{\
+    type *first;\
+}
+
+/* Bi-deriction elements access methods */
+#define BLIST_FIRST(head) ((head)->first)
+#define BLIST_PREV(elm, field) ((elm)->field.prev)
+#define BLIST_NEXT(elm, field) ((elm)->field.next)
+
+/* Bi-deriction list functions */
+#define BLIST_ISEMPTY(head) (NULL == (head)->first)
+
+#define BLIST_INIT(head) do\
+{\
+    (head)->first = NULL;\
+} while(0)
+
+//Parameter elm should be NULL when add first member to list.
+#define BLIST_INSERT_BEFORE(head, inelm, elm, field) do\
+{\
+    if (BLIST_ISEMPTY(head))\
+    {\
+        (head)->first = inelm;\
+        (inelm)->field.prev = NULL;\
+        (inelm)->field.next = NULL;\
+    }\
+    else\
+    {\
+        if (elm == BLIST_FIRST(head))\
+            (head)->first = inelm;\
+        if (NULL != (elm)->field.prev)\
+            BLIST_PREV(elm, field)->field.next = inelm;\
+        else\
+            (head)->first = (inelm);\
+        (inelm)->field.prev = (elm)->field.prev;\
+        (inelm)->field.next = (elm);\
+        (elm)->field.prev = (inelm);\
+    }\
+} while(0)
+
+//Parameter elm should be NULL when add first member to list.
+#define BLIST_INSERT_AFTER(head, inelm, elm, field) do\
+{\
+    if (BLIST_ISEMPTY(head))\
+    {\
+        (head)->first = inelm;\
+        (inelm)->field.prev = NULL;\
+        (inelm)->field.next = NULL;\
+    }\
+    else\
+    {\
+        if (NULL != BLIST_NEXT(elm, field))\
+        {\
+            BLIST_NEXT(elm, field)->field.prev = inelm;\
+            (inelm)->field.next = BLIST_NEXT(elm, field);\
+        }\
+        else\
+            (inelm)->field.next = NULL;\
+        (inelm)->field.prev = (elm);\
+        (elm)->field.next = (inelm);\
+    }\
+} while(0)
+
+#define BLIST_REMOVE(head, elm, field) do\
+{\
+    if ((elm) == (head)->first)\
+        (head)->first = (elm)->field.next;\
+    if (NULL != BLIST_NEXT(elm, field))\
+        BLIST_NEXT(elm, field)->field.prev = BLIST_PREV(elm, field);\
+    if (NULL != BLIST_PREV(elm, field))\
+        BLIST_PREV(elm, field)->field.next = BLIST_NEXT(elm, field);\
+} while(0)
+
+#define BLIST_FOREACH_HEAD(index, head, field) \
+for (index = BLIST_FIRST(head);\
+     index;\
+     index = index->field.next)
+
 /* Select type of time getted. */
 typedef enum
 {

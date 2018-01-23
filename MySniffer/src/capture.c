@@ -13,7 +13,7 @@ int do_cap(int sock_fd, char *buf, int size)
 	int res = 0;
 	fd_set fd_read;
 	struct sockaddr saddr;
-	int addr_size = sizeof(saddr);
+	socklen_t addr_size = sizeof(saddr);
 	int data_len = 0;
 
 

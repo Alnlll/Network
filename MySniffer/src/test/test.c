@@ -6,6 +6,7 @@
 #include <sys/ioctl.h> //SIOCGIFXXXX,
 #include <time.h> //time_t
 #include <string.h> //memset(),
+#include <stdlib.h> //malloc(),
 #include "comm.h"
 #include "common.h"
 #include "parser.h"
@@ -216,6 +217,70 @@ end:
     return err;
 }
 
+void t_blist()
+{
+    typedef struct _int_node
+    {
+        int val;
+        BLIST_ENTRY(struct _int_node) entry;
+    } int_node;
+
+    int i = 0;
+    int_node *n_node = NULL;
+    int_node *p_tail = NULL;
+    int_node *index = NULL;
+
+    BLIST_HEAD(num_list, struct _int_node) nl_head;
+    BLIST_INIT(&nl_head);
+
+    for (i = 0; i < 10; i++)
+    {
+        if (NULL == (n_node = (int_node *)malloc(sizeof(int_node))))
+        {
+            perror("malloc()");
+            return;
+        }
+        n_node->val = i;
+        BLIST_INSERT_AFTER(&nl_head, n_node, p_tail, entry);
+        p_tail = n_node;
+    }
+
+    BLIST_FOREACH_HEAD(index, &nl_head, entry)
+    {
+        printf("%d\n", index->val);
+        printf("index: %p\n", index);
+        if (index->val == 4)
+        {
+            if (NULL == (n_node = (int_node *)malloc(sizeof(int_node))))
+            {
+                perror("malloc()");
+                return;
+            }
+            n_node->val = 1;
+            BLIST_INSERT_BEFORE(&nl_head, n_node, index, entry);
+
+            if (NULL == (n_node = (int_node *)malloc(sizeof(int_node))))
+            {
+                perror("malloc()");
+                return;
+            }
+            n_node->val = 1;
+            BLIST_INSERT_AFTER(&nl_head, n_node, index, entry);
+            break;
+        }
+    }
+
+    BLIST_FOREACH_HEAD(index, &nl_head, entry)
+    {
+        if (9 == index->val)
+            BLIST_REMOVE(&nl_head, index, entry);
+    }
+
+    BLIST_FOREACH_HEAD(index, &nl_head, entry)
+    {
+        printf("%d\n", index->val);
+    }
+}
 int main(int argc, char *argv[])
 {
     int err = 0;
@@ -233,7 +298,8 @@ int main(int argc, char *argv[])
     //t_set_color();
     //t_get_sys_time();
     //t_log();
-    t_get_netif_info(argv[1]);
+    //t_get_netif_info(argv[1]);
+    t_blist();
     
 #if 0
     send_arp_packet(argv[1], sock_fd);
