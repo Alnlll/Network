@@ -2,6 +2,8 @@
 #define _COMMON_H_
 
 #include <time.h> //time(), ...
+#include <sys/time.h> //gettimeofday(),
+#include <stdint.h> //stdtypes
 
 #define DEFAULT_COLOR        "\e[0m"
 #define BLACK                "\e[0;30m"
@@ -31,7 +33,7 @@
 
 #define LINE_DIS_NUM         16 //Display LINE_DIS_NUM data in hex in one line.
 
-#define GET_DATADRIV_RES(index, key_val, res, table, key_name, proc_name) \
+#define GET_DATADRIV_RES(index, key_val, res, table, key_name, proc_name) do\
 {\
     for (index = 0; index < sizeof(table)/sizeof(table[0]); index++)\
     {\
@@ -41,7 +43,7 @@
             break;\
         }\
     }\
-}
+} while(0)
 
 #if 0
 /* Bi-direction queue implemention. */
@@ -223,6 +225,16 @@ struct tm
     int tm_isdst;
 }
 */
+
+//sizeof timeval will be 16 bytes,
+//define own timeval for libpcap parsing cap file.
+typedef struct _timeval_m
+{
+    uint32_t tvm_sec;
+    uint32_t tvm_usec;
+} timeval_m;
+
+int get_day_time(timeval_m *tm);
 struct tm *get_localtime(time_t *t);
 struct tm *get_utctime(time_t *t);
 /* time_2_str() formats:
@@ -252,8 +264,21 @@ struct tm *get_utctime(time_t *t);
 int time_2_str(char *str, int max_size, const char *format, const struct tm *p_tm);
 int get_str_time(char *str, int max_size, const char *format, time_type tt);
 
+/*File functions*/
+typedef int (*file_func)(void *, size_t, size_t, FILE *);
+
+typedef struct _file_info
+{
+    char *path;
+    char *mode;
+    file_func r_func;
+    file_func w_func;
+} file_info;
+
 FILE *open_file(char *path, char *mode);
 void close_file(FILE *p);
+int file_write(void *p, size_t size, size_t mem_num, FILE *f);
+int file_read(void *p, size_t size, size_t mem_num, FILE *f);
 int dir_exist(const char *name);
 
 int exec_command_1(char *cmd);

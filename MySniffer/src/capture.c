@@ -7,6 +7,7 @@
 #include <sys/types.h> //recvfrom()
 #include <sys/socket.h> //recvfrom()
 #include "capture.h"
+#include "comm.h"
 
 int do_cap(int sock_fd, char *buf, int size)
 {

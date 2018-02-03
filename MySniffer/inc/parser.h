@@ -9,35 +9,42 @@ typedef int (* processer)(char *data, int len); //
 #pragma pack(1)
 typedef struct _ether_hdr
 {
-	uint8_t dst_mac[6];
-	uint8_t src_mac[6];
-	uint16_t type;
+    uint8_t dst_mac[6];
+    uint8_t src_mac[6];
+    uint16_t type;
 } ether_hdr;
 
 typedef struct _ip_hdr
 {
 #ifdef LITTLE_ENDIAN
-	int hdr_len:4;
-	int version:4;
+    int hdr_len:4;
+    int version:4;
 #else
-	int version:4;
-	int hdr_len:4;
+    int version:4;
+    int hdr_len:4;
 #endif //LITTLE_ENDIAN
-	uint8_t tos;
-	uint16_t tot_len;
-	uint16_t id;
+    uint8_t tos;
+    uint16_t tot_len;
+    uint16_t id;
 #ifdef LITTLE_ENDIAN
-	int frag_off:13;
-	int flags:3;
+    int frag_off:13;
+    int flags:3;
 #else
-	int flags:3;
-	int frag_off:13;
+    int flags:3;
+    int frag_off:13;
 #endif //LITTLE_ENDIAN
-	uint8_t ttl;
-	uint8_t protocol;
-	struct in_addr srcaddr;
-	struct in_addr dstaddr;
+    uint8_t ttl;
+    uint8_t protocol;
+    struct in_addr srcaddr;
+    struct in_addr dstaddr;
 } ip_hdr;
+
+typedef struct _icmp_hdr
+{
+    uint8_t type;
+    uint8_t code;
+    uint16_t csum;
+} icmp_hdr;
 
 typedef struct _arp_pack
 {
@@ -52,26 +59,42 @@ typedef struct _arp_pack
     struct in_addr target_ip_addr;
 } arp_pack;
 
+typedef struct _data
+{
+    union
+    {
+        ether_hdr lnk_hdr_eth;
+    } lnk_hdr;
+    union
+    {
+        arp_pack lnk_data_arp;
+        //rarp_pack lnk_data_rarp;
+        ip_hdr
+        
+    } lnk_data;
+    
+} eth_data;
+
 #pragma pack()
 
 typedef enum
 {
-	IP_PACKET 					= 0x0800,
-	X75_PACKET					= 0x0801,
-	X25L3_PACKET	 			= 0x0805,
-	ARP_PACKET 					= 0x0806,
-	FRM_RE_ARP_PACKET			= 0x0808,
-	ISIS_PACKET					= 0x8000,
-	RARP_PACKET					= 0x8035,
-	VLAN_PACKET					= 0x8100,
-	IPV6_PACKET 				= 0x86DD,
-	IEEE8023_APCKET 			= 0x8808,
-	PPP_PACKET 					= 0x880B,
-	PPPOE_DISCOVERY_PACKET 		= 0x8863,
-	PPPOE_SESS_PACKET 			= 0x8864,
-	IEEE8021X_PACKET 			= 0x888E,
-	IEEE80211I_PACKET			= 0x88A8,
-	IEEE80211_PREAUTH_PACKET	= 0x88C7,
+    IP_PACKET                   = 0x0800,
+    X75_PACKET                  = 0x0801,
+    X25L3_PACKET                = 0x0805,
+    ARP_PACKET                  = 0x0806,
+    FRM_RE_ARP_PACKET           = 0x0808,
+    ISIS_PACKET                 = 0x8000,
+    RARP_PACKET                 = 0x8035,
+    VLAN_PACKET                 = 0x8100,
+    IPV6_PACKET                 = 0x86DD,
+    IEEE8023_APCKET             = 0x8808,
+    PPP_PACKET                  = 0x880B,
+    PPPOE_DISCOVERY_PACKET      = 0x8863,
+    PPPOE_SESS_PACKET           = 0x8864,
+    IEEE8021X_PACKET            = 0x888E,
+    IEEE80211I_PACKET           = 0x88A8,
+    IEEE80211_PREAUTH_PACKET    = 0x88C7,
 }linklayer_type;
 
 typedef struct _linklayer_proc
@@ -82,14 +105,14 @@ typedef struct _linklayer_proc
 
 typedef enum
 {
-	//RESERVED	= 0x00, /* for IPV6 */
-	ICMP_TYPE	= 0x01, 
-	IGMP_TYPE	= 0x02,
-	//STREAM_TYPE = 0x05,
-	TCP_TYPE	= 0x06,
-	//VOIP_TYPE = 0x0B,
-	UDP_TYPE	= 0x11,
-	//...
+    //RESERVED  = 0x00, /* for IPV6 */
+    ICMP_TYPE   = 0x01, 
+    IGMP_TYPE   = 0x02,
+    //STREAM_TYPE = 0x05,
+    TCP_TYPE    = 0x06,
+    //VOIP_TYPE = 0x0B,
+    UDP_TYPE    = 0x11,
+    //...
 } ip_protocol_type;
 
 typedef struct _ip_proc

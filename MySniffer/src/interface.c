@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <string.h> //strcpy(),
 #include <sys/ioctl.h> //ioctl(),
-#include <net/if.h> //IFF_RUNNING, IFF_PROMISC
 #include <netpacket/packet.h> //struct sockadd_ll,
 #include "interface.h"
 

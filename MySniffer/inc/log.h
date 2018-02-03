@@ -19,6 +19,7 @@ typedef enum
 
 typedef struct _log
 {
+    char *filename;
     FILE *f; /* logfile */
     FILE *s; /* stdout or stderr */
     log_level limit_lv; /* Only the log with equal or lower value will be outputed. */

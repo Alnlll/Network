@@ -7,15 +7,15 @@
 
 void hex_dump(char *data, int len)
 {
-	int i = 0;
-	for (i = 0; i < len; i++)
-	{
-		if (!(i % LINE_DIS_NUM))
-			printf("\n");
-		printf("0x%02x ", *(data+i) & 0xff);
-	}
+    int i = 0;
+    for (i = 0; i < len; i++)
+    {
+        if (!(i % LINE_DIS_NUM))
+            printf("\n");
+        printf("0x%02x ", *(data+i) & 0xff);
+    }
 
-	printf("\n");
+    printf("\n");
 }
 
 void *zelloc(size_t size)
@@ -37,6 +37,31 @@ void free_mem(void *p)
         free(p);
         p = NULL;
     }
+}
+
+int get_day_time(timeval_m *tm)
+{
+    int err = 0;
+    struct timeval tv;
+    struct timezone tz;
+
+    if (NULL == tm)
+    {
+        err = -1;
+        return err;
+    }
+    
+    if (0 != (err = gettimeofday(&tv, &tz)))
+    {
+        perror("get_day_time()");
+        return err;
+    }
+
+    tm->tvm_sec = (uint32_t)tv.tv_sec;
+    tm->tvm_usec = (uint32_t)tv.tv_usec;
+
+    return err;
+    
 }
 
 struct tm *get_localtime(time_t *t)
@@ -111,6 +136,46 @@ void close_file(FILE *p)
         fclose(p);
         p = NULL;
     }   
+}
+
+int file_write(void *p, size_t size, size_t mem_num, FILE *f)
+{
+    int err = 0;
+
+    if ((NULL == p) || (NULL == f))
+    {
+        err = -1;
+        goto end;
+    }
+
+    if (0 >= (err = fwrite(p, size, mem_num, f)))
+    {
+        perror("file_write()");
+        goto end;
+    }
+
+end:
+    return err;
+}
+
+int file_read(void *p, size_t size, size_t mem_num, FILE *f)
+{
+    int err = 0;
+
+    if ((NULL == p) || (NULL == f) || (0 >= size) || (0 >= mem_num))
+    {
+        err = -1;
+        goto end;
+    }
+
+    if (0 >= (err = fread(p, size, mem_num, f)))
+    {
+        perror("file_write()");
+        goto end;
+    }
+
+end:
+    return err;
 }
 
 /* execute shell command with system() */

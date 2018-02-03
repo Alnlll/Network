@@ -1,6 +1,8 @@
 #ifndef _INTERFACE_H_
 #define _INTERFACE_H_
 
+#include <net/if.h> //IFF_RUNNING, IFF_PROMISC, struct ifreq, 
+
 #define ERR_BUF_SIZE 64
 
 //typedef int (*netif_handler)(int, struct ifreq *);

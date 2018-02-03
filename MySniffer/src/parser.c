@@ -35,27 +35,27 @@ ip_proc ip_proc_table[] =
 
 int get_ether_type(char *data, int len)
 {
-	ether_hdr *e_hdr = (ether_hdr *)data;
+    ether_hdr *e_hdr = (ether_hdr *)data;
 
-	if ((NULL == e_hdr) || (0 >= len))
-	{
-		return -1;
-	}
-	else
-		return (int)(ntohs(e_hdr->type));
+    if ((NULL == e_hdr) || (0 >= len))
+    {
+        return -1;
+    }
+    else
+        return (int)(ntohs(e_hdr->type));
 }
 
 int get_ip_protocol(char *data, int len)
 {
-	ip_hdr *p_ip_hdr = (ip_hdr *)data;
+    ip_hdr *p_ip_hdr = (ip_hdr *)data;
 
-	if ((NULL == p_ip_hdr) || (0 >= len))
-		return -1;
+    if ((NULL == p_ip_hdr) || (0 >= len))
+        return -1;
 
 #ifdef DEBUG
     printf("protocol: 0x%x\n", (p_ip_hdr->protocol));
 #endif //DEBUG
-	return (ip_protocol_type)(p_ip_hdr->protocol);
+    return (ip_protocol_type)(p_ip_hdr->protocol);
 }
 
 int lnklay_ipv4_packet_processer(char * data, int len)
@@ -66,11 +66,11 @@ int lnklay_ipv4_packet_processer(char * data, int len)
 
 int lnklay_x75_packet_processer(char *data, int len)
 {
-	return 0;
+    return 0;
 }
 int lnklay_x25l3_packet_processer(char *data, int len)
 {
-	return 0;
+    return 0;
 }
 int lnklay_arp_packet_processer(char *data, int len)
 {
@@ -81,61 +81,61 @@ int lnklay_arp_packet_processer(char *data, int len)
 
     show_lnklay_arp_data((arp_pack *)data);
     
-	return (int)INTER_BREAK;
+    return (int)INTER_BREAK;
 }
 int lnklay_frm_re_arp_packet_processer(char *data, int len)
 {
-	return 0;
+    return 0;
 }
 int lnklay_isis_packet_processer(char *data, int len)
 {
-	return 0;
+    return 0;
 }
 int lnklay_rarp_packet_processer(char *data, int len)
 {
-	return 0;
+    return 0;
 }
 int lnklay_vlan_packet_processer(char *data, int len)
 {
-	return 0;
+    return 0;
 }
 int lnklay_ipv6_packet_processer(char *data, int len)
 {
-	return 0;
+    return 0;
 }
 int lnklay_ieee8023_packet_processer(char *data, int len)
 {
-	return 0;
+    return 0;
 }
 int lnklay_ppp_packet_processer(char *data, int len)
 {
-	return 0;
+    return 0;
 }
 int lnklay_pppoe_disc_packet_processer(char *data, int len)
 {
-	return 0;
+    return 0;
 }
 int lnklay_pppoe_sess_packet_processer(char *data, int len)
 {
-	return 0;
+    return 0;
 }
 int lnklay_ieee8021x_packet_processer(char *data, int len)
 {
-	return 0;
+    return 0;
 }
 int lnklay_ieee80211i_packet_processer(char *data, int len)
 {
-	return 0;
+    return 0;
 }
 int lnklay_ieee80211_preauth_packet_processer(char *data, int len)
 {
-	return 0;
+    return 0;
 }
 
 processer get_linklayer_processer(linklayer_type type)
 {
     int index = 0;
-	processer proc_func = NULL;
+    processer proc_func = NULL;
 
     GET_DATADRIV_RES(index, type, proc_func, linklayer_proc_table, type, proc_func);
 
@@ -167,11 +167,11 @@ processer get_ip_processer(char *data, int len)
     int protocol = 0;
     processer proc_func = NULL;
 
-	if ((NULL == data) || (0 >= len))
-		return NULL;
+    if ((NULL == data) || (0 >= len))
+        return NULL;
 
-	if (0 > (protocol = get_ip_protocol(data, len)))
-		return NULL;
+    if (0 > (protocol = get_ip_protocol(data, len)))
+        return NULL;
     
     GET_DATADRIV_RES(index, protocol, proc_func, ip_proc_table, protocol, proc_func);
 
@@ -185,18 +185,18 @@ int linklayer_data_processer(char *data, int len)
     processer linklayer_proc_func = NULL;
     
     if ((NULL == data) || (0 >= len))
-		return -1;
+        return -1;
     if (0 > (type = get_ether_type(data, len)))
         return -1;
     
     show_linklayer_data((ether_hdr *)data);
 
-	/* linklayer data process */
-	if (NULL == (linklayer_proc_func = get_linklayer_processer(type)))
-	{
-		printf("Parse ether packet fail\n");
-		return -1;
-	}
+    /* linklayer data process */
+    if (NULL == (linklayer_proc_func = get_linklayer_processer(type)))
+    {
+        printf("Parse ether packet fail\n");
+        return -1;
+    }
     if (0 != (err = linklayer_proc_func(data, len))) 
         return err;
 
@@ -208,7 +208,7 @@ int iplayer_data_processer(char *data, int len)
     processer ip_proc_func = NULL;
 
     if ((NULL == data) || (0 >= len))
-		return -1;
+        return -1;
     
     if (NULL == (ip_proc_func = get_ip_processer(data, len)))
     {
@@ -218,7 +218,7 @@ int iplayer_data_processer(char *data, int len)
     if (0 > ip_proc_func(data+sizeof(ether_hdr), len-sizeof(ether_hdr)))
     {
         printf("Deal ip packet fail\n");
-		return -1;
+        return -1;
     }
     
     return 0;
@@ -292,7 +292,7 @@ int process_err(err_type err)
             res = -1;
             break;
         case IPLAY_PARSE_ERR:
-            printf("Parse linklayer data fail.\n");
+            printf("Parse iplayer data fail.\n");
             res = -1;
             break;
         default:
@@ -306,12 +306,12 @@ int data_processer(char *data, int len)
 {
     int err = 0;
     
-	if ((NULL == data) || (0 >= len))
-		return -1;
+    if ((NULL == data) || (0 >= len))
+        return -1;
 
-	/* linklayer data process */
-	if (0 != (err = linklayer_data_processer(data, len)))
-	{
+    /* linklayer data process */
+    if (0 != (err = linklayer_data_processer(data, len)))
+    {
         return err;
     }
 
@@ -325,5 +325,5 @@ int data_processer(char *data, int len)
         return err;
     }
 
-	return err;
+    return err;
 }

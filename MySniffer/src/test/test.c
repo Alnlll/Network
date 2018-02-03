@@ -7,11 +7,14 @@
 #include <time.h> //time_t
 #include <string.h> //memset(),
 #include <stdlib.h> //malloc(),
+#include <unistd.h> //close(),
 #include "comm.h"
 #include "common.h"
 #include "parser.h"
+#include "capture.h"
 #include "interface.h"
 #include "log.h"
+#include "sniffer.h"
 
 int send_arp_packet(char *ifname, int sock_fd)
 {
@@ -281,6 +284,167 @@ void t_blist()
         printf("%d\n", index->val);
     }
 }
+
+void t_pcap_file(void)
+{
+    FILE *f = NULL;
+    //struct timezone tz;
+
+    cap_file_hdr f_hdr;
+    cap_pkt_hdr p_hdr;
+
+    char data[] = {0x80,0x89,0x17,0xfc,0x35,0xc6,0x0a,0x9b,0x93,0xa9,0x30,0xc8,
+                   0x08,0x00,0x45,0x00,0x00,0x2c,0x31,0x16,0x00,0x00,0x40,0x11,
+                   0x95,0x19,0xc0,0xa8,0x00,0x67,0x74,0x1b,0x7f,0x67,0x11,0x72,
+                   0x56,0x41,0x00,0x18,0x93,0xf5,0x4b,0xff,0x00,0x01,0x04,0x00,
+                   0x00,0x08,0x00,0x00,0x00,0x16,0x00,0x00,0x00,0x0f};
+
+    if (NULL == (f = open_file("./test.cap", "wb")))
+    {
+        return;
+    }
+
+    f_hdr.magic = 0xa1b2c3d4;
+    f_hdr.version_major = 0x02;
+    f_hdr.version_minor = 0x04;
+    f_hdr.thiszone = 0x00;
+    f_hdr.sigfigs = 0x00;
+    f_hdr.linktype = 0x01;
+    f_hdr.snaplen = 0x01;
+
+    // if(get_day_time(&(p_hdr.ts), &tz))
+    // {
+    //     perror("get_day_time");
+    // }
+    p_hdr.caplen = 0x3a;
+    p_hdr.len = 0x3a;
+
+
+    if (0 >= fwrite(&f_hdr, sizeof(p_hdr), 1, f))
+    {
+        perror("fwrite1");
+    }
+    if (0 >= fwrite(&p_hdr, sizeof(p_hdr), 1, f))
+    {
+        perror("fwrite2");
+    }
+    
+    if (0 >= fwrite(&data, sizeof(data), 1, f))
+    {
+        perror("fwrite3");
+    }
+
+    close_file(f);
+}
+
+
+// void t_get_day_time(void)
+// {
+//     struct timeval tv;
+//     struct timezone tz;
+
+//     if (gettimeofday(&tv, &tz))
+//         perror("gettimeofday()");
+//     else
+//     {
+//         printf("tv: %d, %d\n", tv.tv_sec, tv.tv_usec);
+//         printf("tz: %d, %d\n", tz.tz_minuteswest, tz.tz_dsttime);
+//     }
+// }
+
+int t_cap_and_write_cap_file(char *ifname)
+{
+#define REV_DATA_SIZE 8192
+    char *usage = "Usage:\n\ttest ifname\n";
+    int err = 0;
+    int r_sock_fd = -1;
+    char data_buf[REV_DATA_SIZE] = {0};
+    int rev_len = 0;
+    FILE *cap_f = NULL;
+    cap_file_hdr cap_filehead;
+    cap_pkt_hdr cap_pkthead;
+    
+    if (NULL == ifname)
+    {
+        printf("%s", usage);
+        return -1;
+    }
+
+    if (NULL == (cap_f = open_file("./test.cap", "wb")))
+    {
+        return -1;
+    }
+
+    cap_file_hdr_init(&cap_filehead);
+    
+    r_sock_fd = create_socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
+    if (-1 == r_sock_fd)
+    {
+        return -1;
+    }
+
+    if (0 != do_promisc(ifname, r_sock_fd))
+    {
+        fprintf(stderr, "%s", "Promisc mode setting fail.\n");
+        err = -1;
+        goto end;
+    }
+
+    if (0 >= (err = file_write(&cap_filehead, sizeof(cap_file_hdr), 1, cap_f)))
+    {
+        printf("write cap file head fail: %d\n", err);
+        goto end;
+    }
+
+    while (1)
+    {
+        if (0 < (rev_len = do_cap(r_sock_fd, data_buf, sizeof(data_buf))))
+        {
+            if (get_day_time(&(cap_pkthead.ts)))
+            {
+                continue;
+            }
+            else
+            {
+                printf("==time:%xu, %xu===\n", cap_pkthead.ts.tvm_sec, cap_pkthead.ts.tvm_usec);
+                cap_pkthead.caplen = rev_len;
+                cap_pkthead.len = rev_len;
+                if (0 >= file_write(&cap_pkthead, sizeof(cap_pkthead), 1, cap_f))
+                {
+                    printf("write pkt head fail.\n");
+                    break;
+                }
+                if (0 >= file_write(data_buf, rev_len, 1, cap_f))
+                {
+                    printf("write data fail.\n");
+                    break;
+                }
+            }
+            hex_dump(data_buf, rev_len);
+            err = data_processer(data_buf, rev_len);
+            if (0 != process_err((err_type)err))
+                continue;
+        }
+        else
+        {
+            break;
+        }
+    }
+
+    if (0 != cancel_promisc(ifname, r_sock_fd))
+    {
+        close(r_sock_fd);
+        fprintf(stderr, "%s", "Promisc mode canceling fail.\n");
+        err = -1;
+        goto end;
+    }
+
+end:
+    close_file(cap_f);
+    destroy_socket(r_sock_fd);
+    return err;
+}
+
 int main(int argc, char *argv[])
 {
     int err = 0;
@@ -299,7 +463,10 @@ int main(int argc, char *argv[])
     //t_get_sys_time();
     //t_log();
     //t_get_netif_info(argv[1]);
-    t_blist();
+    //t_blist();
+    //t_pcap_file();
+    //t_get_day_time();
+    t_cap_and_write_cap_file(argv[1]);
     
 #if 0
     send_arp_packet(argv[1], sock_fd);
